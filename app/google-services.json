@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885254806712",
+    "project_id": "wildsafari-b0241",
+    "storage_bucket": "wildsafari-b0241.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885254806712:android:7a040d628630229c4d284d",
+        "android_client_info": {
+          "package_name": "com.example.wildsafari"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAO0853qeeNUdgu7j22r5I6am8-HKjGtg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
