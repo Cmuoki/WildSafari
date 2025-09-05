@@ -10,16 +10,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.wildsafari.ROUTE_ADDANIMAL
 import com.example.wildsafari.ROUTE_ANIMALS
 import com.example.wildsafari.ROUTE_CART
 import com.example.wildsafari.ROUTE_HOME
 import com.example.wildsafari.ROUTE_PLACES
 import com.example.wildsafari.ROUTE_TOURS
-
+import com.example.wildsafari.ROUTE_ADDANIMAL
 import com.example.wildsafari.viewmodel.BookingViewModel
 
 @Composable
@@ -28,7 +28,8 @@ fun HomeScreen(navController: NavController, bookingViewModel: BookingViewModel)
     val totalPrice = bookingViewModel.totalPrice.value
 
     Scaffold(
-        bottomBar = { BottomNavBar(navController) }
+        bottomBar = { BottomNavBar(navController) },
+        containerColor = Color(0xFFE8F5E9) // Light green background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -46,7 +47,7 @@ fun HomeScreen(navController: NavController, bookingViewModel: BookingViewModel)
                     text = "Wild Safari 🐘",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color(0xFF2E7D32) // Forest green
                     )
                 )
 
@@ -79,7 +80,7 @@ fun HomeScreen(navController: NavController, bookingViewModel: BookingViewModel)
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(quickAccessItems) { item ->
-                    QuickAccessCard(item = item, navController = navController, bookingViewModel = bookingViewModel)
+                    QuickAccessCard(item = item, navController = navController)
                 }
             }
 
@@ -90,9 +91,9 @@ fun HomeScreen(navController: NavController, bookingViewModel: BookingViewModel)
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -100,12 +101,14 @@ fun HomeScreen(navController: NavController, bookingViewModel: BookingViewModel)
                 ) {
                     Text(
                         text = "🛒 ${cartItems.size} items in cart",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1B5E20)
+                        )
                     )
                     Text(
                         text = "Total: $${totalPrice}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
                     )
                 }
             }
@@ -113,7 +116,7 @@ fun HomeScreen(navController: NavController, bookingViewModel: BookingViewModel)
     }
 }
 
-// ✅ Quick Access Item Data Class
+// Quick Access Item Data Class
 data class QuickAccessItem(
     val title: String,
     val icon: @Composable () -> Unit,
@@ -127,14 +130,14 @@ val quickAccessItems = listOf(
     QuickAccessItem("Cart", { Icon(Icons.Default.ShoppingCart, contentDescription = "Cart") }, ROUTE_CART)
 )
 
-// ✅ Quick Access Card
+// Quick Access Card
 @Composable
-fun QuickAccessCard(item: QuickAccessItem, navController: NavController, bookingViewModel: BookingViewModel) {
+fun QuickAccessCard(item: QuickAccessItem, navController: NavController) {
     Card(
         modifier = Modifier.size(120.dp, 100.dp),
         shape = RoundedCornerShape(12.dp),
         onClick = { navController.navigate(item.route) },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFC8E6C9)) // Light green card
     ) {
         Column(
             modifier = Modifier
@@ -147,13 +150,16 @@ fun QuickAccessCard(item: QuickAccessItem, navController: NavController, booking
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = item.title,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2E7D32)
+                )
             )
         }
     }
 }
 
-// ✅ Updated Bottom Navigation Bar
+// Bottom Navigation Bar
 @Composable
 fun BottomNavBar(navController: NavController) {
     NavigationBar {
@@ -164,22 +170,22 @@ fun BottomNavBar(navController: NavController) {
             onClick = { navController.navigate(ROUTE_HOME) }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Add, contentDescription = "Add Animal") },
-            label = { Text("Add Animal") },
-            selected = false,
-            onClick = { navController.navigate(ROUTE_ADDANIMAL) }
-        )
-        NavigationBarItem(
             icon = { Icon(Icons.Default.Pets, contentDescription = "Animals") },
             label = { Text("Animals") },
             selected = false,
             onClick = { navController.navigate(ROUTE_ANIMALS) }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifications") },
-            label = { Text("Notifications") },
+            icon = { Icon(Icons.Default.Explore, contentDescription = "Places") },
+            label = { Text("Places") },
             selected = false,
-            onClick = { /* TODO: Notifications screen */ }
+            onClick = { navController.navigate(ROUTE_PLACES) }
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Tour, contentDescription = "Tours") },
+            label = { Text("Tours") },
+            selected = false,
+            onClick = { navController.navigate(ROUTE_TOURS) }
         )
     }
 }

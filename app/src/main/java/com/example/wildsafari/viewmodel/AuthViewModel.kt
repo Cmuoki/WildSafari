@@ -1,116 +1,87 @@
 package com.example.wildsafari.viewmodel
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.widget.Toast
 import androidx.navigation.NavHostController
+import com.example.wildsafari.ROUTE_HOME
 import com.example.wildsafari.ROUTE_LOGIN
 import com.example.wildsafari.ROUTE_REGISTER
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class AuthViewModel(
     private val navController: NavHostController,
     private val context: Context
-) : ViewModel() {
+) {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val database = FirebaseDatabase.getInstance().reference
 
-    // 🔹 Signup with Firebase and callback for Compose UI
-    fun signup(
-        fullname: String,
-        email: String,
-        pass: String,
-        confirmpass: String,
-        callback: (Boolean, String) -> Unit
-    ) {
-        if (fullname.isBlank() || email.isBlank() || pass.isBlank() || confirmpass.isBlank()) {
-            callback(false, "All fields are required")
+    // 🔹 Register user
+    fun signup(fullname: String, email: String, password: String, confirmPassword: String) {
+        if (fullname.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+            Toast.makeText(context, "All fields are required", Toast.LENGTH_LONG).show()
             return
         }
-        if (pass != confirmpass) {
-            callback(false, "Passwords do not match")
+
+        if (password != confirmPassword) {
+            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_LONG).show()
             return
         }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val result = auth.createUserWithEmailAndPassword(email, pass).await()
-                val userId = result.user?.uid
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val userId = auth.currentUser?.uid ?: ""
+                            val userMap = mapOf(
+                                "uid" to userId,
+                                "fullname" to fullname,
+                                "email" to email
+                            )
 
-                if (userId != null) {
-                    // Save extra user data in Firestore
-                    val userMap = mapOf(
-                        "fullname" to fullname,
-                        "email" to email,
-                        "uid" to userId
-                    )
-                    db.collection("users").document(userId).set(userMap).await()
-                }
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    callback(true, "Registered Successfully")
-                }
+                            database.child("users").child(userId).setValue(userMap)
+                                .addOnCompleteListener {
+                                    Toast.makeText(context, "Registration successful", Toast.LENGTH_LONG).show()
+                                    navController.navigate(ROUTE_LOGIN) {
+                                        popUpTo(ROUTE_REGISTER) { inclusive = true }
+                                    }
+                                }
+                        } else {
+                            Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
             } catch (e: Exception) {
                 CoroutineScope(Dispatchers.Main).launch {
-                    callback(false, "Error: ${e.message}")
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
     }
 
-    // 🔹 Login with Firebase
-    fun login(email: String, pass: String, callback: (Boolean, String) -> Unit) {
-        if (email.isBlank() || pass.isBlank()) {
-            callback(false, "Email and password required")
+    // 🔹 Login user
+    fun login(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            Toast.makeText(context, "Email and password required", Toast.LENGTH_LONG).show()
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                auth.signInWithEmailAndPassword(email, pass).await()
-                CoroutineScope(Dispatchers.Main).launch {
-                    callback(true, "Successfully logged in")
-                }
-            } catch (e: Exception) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    callback(false, "Login failed: ${e.message}")
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Login successful", Toast.LENGTH_LONG).show()
+                    navController.navigate(ROUTE_HOME) {
+                        popUpTo("login") { inclusive = true }
+                    }
+                } else {
+                    Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
             }
-        }
-    }
-
-    // 🔹 Logout
-    fun logout() {
-        auth.signOut()
-        navController.navigate(ROUTE_LOGIN) {
-            popUpTo(0)
-        }
-    }
-
-    // 🔹 Get current user fullname
-    fun getUserFullname(onResult: (String?) -> Unit) {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            db.collection("users").document(userId).get()
-                .addOnSuccessListener { doc ->
-                    onResult(doc.getString("fullname"))
-                }
-                .addOnFailureListener {
-                    onResult(null)
-                }
-        } else {
-            onResult(null)
-        }
-    }
-
-    // 🔹 Check if logged in
-    fun isLoggedIn(): Boolean {
-        return auth.currentUser != null
     }
 }
+
 

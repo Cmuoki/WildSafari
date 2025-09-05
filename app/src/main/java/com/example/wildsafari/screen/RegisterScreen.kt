@@ -1,142 +1,144 @@
 package com.example.wildsafari.ui.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.example.wildsafari.R
 import com.example.wildsafari.ROUTE_LOGIN
-import com.example.wildsafari.viewmodel.AuthViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(navController: NavHostController) {
     var fullname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
-    var isSuccess by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
-    val authViewModel = AuthViewModel(navController, context)
-    val coroutineScope = rememberCoroutineScope()
 
-    Column(
+    // Simple gradient background
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFFDFF6E4), Color(0xFFF9F3E9))
+                )
+            )
+            .padding(16.dp)
     ) {
-        Text("REGISTER", fontSize = 32.sp, color = Color.Blue)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
 
-        Spacer(modifier = Modifier.height(20.dp))
+            // Top image/logo
+            Image(
+                painter = painterResource(id = R.drawable.elephant), // Replace with your wildlife image
+                contentDescription = "Wild Safari Logo",
+                modifier = Modifier
+                    .height(120.dp)
+                    .fillMaxWidth()
+            )
 
-        OutlinedTextField(
-            value = fullname,
-            onValueChange = { fullname = it },
-            label = { Text("Full Name") },
-            leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Register",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    color = Color(0xFF2E7D32),
+                    fontSize = 32.sp
+                )
+            )
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+            // Full Name
+            OutlinedTextField(
+                value = fullname,
+                onValueChange = { fullname = it },
+                label = { Text("Full Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+            // Email
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Confirm Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
+            // Password
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    authViewModel.signup(fullname, email, password, confirmPassword) { success, msg ->
-                        message = msg
-                        isSuccess = success
-                        if (success) {
-                            // Clear fields
-                            fullname = ""
-                            email = ""
-                            password = ""
-                            confirmPassword = ""
+            Spacer(modifier = Modifier.height(24.dp))
 
-                            // Navigate to login after 1 second
-                            launch {
-                                delay(1000)
-                                navController.navigate(ROUTE_LOGIN) {
-                                    popUpTo("register") { inclusive = true }
+            // Register Button
+            Button(
+                onClick = {
+                    if (fullname.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val auth = FirebaseAuth.getInstance()
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val userId = auth.currentUser?.uid ?: ""
+                                    val database = FirebaseDatabase.getInstance().reference
+                                    val user = mapOf(
+                                        "fullname" to fullname,
+                                        "email" to email
+                                    )
+                                    database.child("users").child(userId).setValue(user)
+
+                                    Toast.makeText(context, "Registration Successful!", Toast.LENGTH_LONG).show()
+
+                                    fullname = ""
+                                    email = ""
+                                    password = ""
+
+                                    navController.navigate(ROUTE_LOGIN) {
+                                        popUpTo(ROUTE_LOGIN) { inclusive = true }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                                 }
                             }
-                        }
                     }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Register")
-        }
-
-        if (message.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = message,
-                color = if (isSuccess) Color.Green else Color.Red
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        TextButton(onClick = { navController.navigate(ROUTE_LOGIN) }) {
-            Text("Already have an account? Login")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Register", fontSize = 18.sp)
+            }
         }
     }
-}
-
-@Composable
-@Preview(showBackground = true)
-fun RegisterPreview() {
-    RegisterScreen(rememberNavController())
 }
