@@ -1,22 +1,25 @@
 package com.example.wildsafari.ui.screens
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.wildsafari.BookingItem
 import com.example.wildsafari.ROUTE_CART
+import com.example.wildsafari.R
 import com.example.wildsafari.ui.components.BottomNavBar
 import com.example.wildsafari.viewmodel.BookingViewModel
 import java.util.*
@@ -25,9 +28,9 @@ import java.util.*
 @Composable
 fun PlacesScreen(navController: NavController, bookingViewModel: BookingViewModel) {
     val places = listOf(
-        BookingItem(id = "p1", type = "place", name = "Savannah Plains", price = 70.0),
-        BookingItem(id = "p2", type = "place", name = "Elephant Valley", price = 80.0),
-        BookingItem(id = "p3", type = "place", name = "Rhino Sanctuary", price = 100.0)
+        BookingItem(id = "p1", type = "place", name = "Savannah Plains", price = 70.0, imageRes = R.drawable.savannah),
+        BookingItem(id = "p2", type = "place", name = "Elephant Valley", price = 80.0, imageRes = R.drawable.elephantvalley),
+        BookingItem(id = "p3", type = "place", name = "Rhino Sanctuary", price = 100.0, imageRes = R.drawable.rhino)
     )
 
     Scaffold(
@@ -41,7 +44,7 @@ fun PlacesScreen(navController: NavController, bookingViewModel: BookingViewMode
             )
         },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color(0xFFE8F5E9) // light green nature-inspired background
+        containerColor = Color(0xFFE8F5E9)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -64,14 +67,14 @@ fun PlaceCard(place: BookingItem, navController: NavController, bookingViewModel
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(8.dp),
         onClick = {
             val calendar = Calendar.getInstance()
             DatePickerDialog(
                 context,
-                { _, year, month, dayOfMonth ->
-                    val selectedDate = "$year-${month + 1}-$dayOfMonth"
+                { _, year, month, day ->
+                    val selectedDate = "$year-${month + 1}-$day"
                     val placeWithDate = place.copy(date = selectedDate)
                     bookingViewModel.addToCart(placeWithDate)
                     navController.navigate(ROUTE_CART)
@@ -88,12 +91,16 @@ fun PlaceCard(place: BookingItem, navController: NavController, bookingViewModel
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Place,
-                contentDescription = place.name,
-                tint = Color(0xFF2E7D32),
-                modifier = Modifier.size(40.dp)
-            )
+            if (place.imageRes != 0) {
+                Image(
+                    painter = painterResource(id = place.imageRes),
+                    contentDescription = place.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
@@ -109,8 +116,3 @@ fun PlaceCard(place: BookingItem, navController: NavController, bookingViewModel
         }
     }
 }
-
-
-
-
-

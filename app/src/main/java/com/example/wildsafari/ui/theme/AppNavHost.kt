@@ -13,8 +13,10 @@ import com.example.wildsafari.ROUTE_HOME
 import com.example.wildsafari.ROUTE_LOGIN
 import com.example.wildsafari.ROUTE_PLACES
 import com.example.wildsafari.ROUTE_REGISTER
+import com.example.wildsafari.ROUTE_SPLASH
 import com.example.wildsafari.ROUTE_TOURS
 import com.example.wildsafari.screen.AnimalListScreen
+import com.example.wildsafari.screen.SplashScreen
 import com.example.wildsafari.ui.screens.*
 import com.example.wildsafari.viewmodel.BookingViewModel
 
@@ -22,7 +24,7 @@ import com.example.wildsafari.viewmodel.BookingViewModel
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = ROUTE_LOGIN,
+    startDestination: String = ROUTE_SPLASH,
     bookingViewModel: BookingViewModel
 ) {
     NavHost(
@@ -53,6 +55,9 @@ fun AppNavHost(
         }
         composable(ROUTE_TOURS) {
             ToursScreen(navController, bookingViewModel)
+        }
+        composable(ROUTE_SPLASH) {
+            SplashScreen(navController)
         }
     }
 }

@@ -1,23 +1,26 @@
 package com.example.wildsafari.ui.screens
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.wildsafari.BookingItem
 import com.example.wildsafari.ROUTE_CART
+import com.example.wildsafari.R
 import com.example.wildsafari.ui.components.BottomNavBar
 import com.example.wildsafari.viewmodel.BookingViewModel
 import java.util.*
@@ -26,9 +29,9 @@ import java.util.*
 @Composable
 fun ToursScreen(navController: NavController, bookingViewModel: BookingViewModel = viewModel()) {
     val tours = listOf(
-        BookingItem(id = "t1", type = "tour", name = "Safari Jeep Tour", price = 120.0),
-        BookingItem(id = "t2", type = "tour", name = "Night Safari", price = 150.0),
-        BookingItem(id = "t3", type = "tour", name = "River Cruise", price = 90.0)
+        BookingItem(id = "t1", type = "tour", name = "Safari Jeep Tour", price = 120.0, imageRes = R.drawable.jeep),
+        BookingItem(id = "t2", type = "tour", name = "Night Safari", price = 150.0, imageRes = R.drawable.nightsafari),
+        BookingItem(id = "t3", type = "tour", name = "River Cruise", price = 90.0, imageRes = R.drawable.rivercruise)
     )
 
     Scaffold(
@@ -42,7 +45,7 @@ fun ToursScreen(navController: NavController, bookingViewModel: BookingViewModel
             )
         },
         bottomBar = { BottomNavBar(navController) },
-        containerColor = Color(0xFFE8F5E9) // light green nature-inspired background
+        containerColor = Color(0xFFE8F5E9)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -65,8 +68,8 @@ fun TourCard(tour: BookingItem, navController: NavController, bookingViewModel: 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(8.dp),
         onClick = {
             val calendar = Calendar.getInstance()
             DatePickerDialog(
@@ -89,12 +92,17 @@ fun TourCard(tour: BookingItem, navController: NavController, bookingViewModel: 
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Map,
-                contentDescription = tour.name,
-                tint = Color(0xFF2E7D32),
-                modifier = Modifier.size(40.dp)
-            )
+            if (tour.imageRes != 0) {
+                Image(
+                    painter = painterResource(id = tour.imageRes),
+                    contentDescription = tour.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            }
+
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
@@ -110,6 +118,3 @@ fun TourCard(tour: BookingItem, navController: NavController, bookingViewModel: 
         }
     }
 }
-
-
-
